@@ -1,0 +1,8 @@
+{
+  "name": "kontrol-gas-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard KontrolGas - Sistema completo",
+  "engines": {
+    "node": "24.x"
+  }
+}
