@@ -1,448 +1,79 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KontrolGas - Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+// Configuración MQTT
+const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+let latestESP32Data = null;
+
+mqttClient.on('connect', function () {
+    console.log('✅ MQTT conectado');
+    mqttClient.subscribe('kontrol-gas/esp32/weight', function (err) {
+        if (!err) {
+            console.log('✅ Suscrito a topic MQTT');
         }
+    });
+});
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .gauge-container {
-            position: relative;
-            width: 300px;
-            height: 200px;
-            margin: 0 auto 20px;
-        }
-
-        .gauge-svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .gauge-bg {
-            fill: none;
-            stroke: #e0e0e0;
-            stroke-width: 20;
-        }
-
-        .gauge-fill {
-            fill: none;
-            stroke: #4CAF50;
-            stroke-width: 20;
-            stroke-linecap: round;
-            transition: stroke-dasharray 1s ease;
-        }
-
-        .gauge-text {
-            text-anchor: middle;
-            font-size: 2.5rem;
-            font-weight: bold;
-            fill: #333;
-        }
-
-        .weight-display {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .weight-value {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #2196F3;
-            margin-bottom: 10px;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-connected {
-            background-color: #4CAF50;
-            animation: pulse 2s infinite;
-        }
-
-        .status-disconnected {
-            background-color: #f44336;
-        }
-
-        .status-simulated {
-            background-color: #ff9800;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .config-section {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .config-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-group input {
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background: #1976D2;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .info-item {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .info-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2196F3;
-            margin-bottom: 5px;
-        }
-
-        .info-label {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            
-            .config-form {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⚖️ KontrolGas</h1>
-            <p>Dashboard de Monitoreo en Tiempo Real</p>
-        </div>
-
-        <div class="dashboard">
-            <!-- Medidor de Gas -->
-            <div class="card">
-                <h2 style="text-align: center; margin-bottom: 20px; color: #333;">
-                    <span id="connectionStatus" class="status-indicator status-disconnected"></span>
-                    Nivel de Gas
-                </h2>
-                <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 200 120">
-                        <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100"></path>
-                        <path id="gaugeFill" class="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" 
-                              stroke-dasharray="0 251.2"></path>
-                        <text id="gaugeText" class="gauge-text" x="100" y="85">0%</text>
-                    </svg>
-                </div>
-                <div id="gasInfo" class="info-item">
-                    <div class="info-value">0.0 kg</div>
-                    <div class="info-label">Gas Disponible</div>
-                </div>
-            </div>
-
-            <!-- Peso Total -->
-            <div class="card">
-                <h2 style="text-align: center; margin-bottom: 20px; color: #333;">Peso Total</h2>
-                <div class="weight-display">
-                    <div id="totalWeight" class="weight-value">0.000 kg</div>
-                    <div class="weight-label">Peso Actual del Cilindro</div>
-                </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div id="netWeight" class="info-value">0.0 kg</div>
-                        <div class="info-label">Peso Neto</div>
-                    </div>
-                    <div class="info-item">
-                        <div id="emptyWeight" class="info-value">0.0 kg</div>
-                        <div class="info-label">Peso Vacío</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Configuración -->
-        <div class="config-section">
-            <h2 style="margin-bottom: 20px; color: #333;">⚙️ Configuración del Cilindro</h2>
-            <div class="config-form">
-                <div class="form-group">
-                    <label for="emptyWeightInput">Peso del Cilindro Vacío (kg):</label>
-                    <input type="number" id="emptyWeightInput" step="0.1" min="0" max="50" value="5.0" required>
-                </div>
-                <div class="form-group">
-                    <label for="fullWeightInput">Peso del Cilindro Lleno (kg):</label>
-                    <input type="number" id="fullWeightInput" step="0.1" min="0" max="100" value="15.0" required>
-                </div>
-            </div>
-            <button type="button" class="btn" onclick="saveConfiguration()">💾 Guardar Configuración</button>
-            
-            <!-- Información del Sistema -->
-            <div class="info-grid">
-                <div class="info-item">
-                    <div id="dataSource" class="info-value">-</div>
-                    <div class="info-label">Fuente de Datos</div>
-                </div>
-                <div class="info-item">
-                    <div id="lastUpdate" class="info-value">-</div>
-                    <div class="info-label">Última Actualización</div>
-                </div>
-                <div class="info-item">
-                    <div id="esp32Status" class="info-value">-</div>
-                    <div class="info-label">Estado ESP32</div>
-                </div>
-                <div class="info-item">
-                    <div id="updateCount" class="info-value">0</div>
-                    <div class="info-label">Actualizaciones</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let updateCounter = 0;
-        let currentConfig = {
-            empty_weight: 5.0,
-            full_weight: 15.0
+mqttClient.on('message', function (topic, message) {
+    try {
+        const data = JSON.parse(message.toString());
+        latestESP32Data = {
+            ...data,
+            received_at: Date.now()
         };
+        console.log('📥 Datos MQTT recibidos:', data.weight, 'kg');
+        
+        // Actualizar dashboard inmediatamente
+        updateDataFromMQTT();
+    } catch (error) {
+        console.error('❌ Error procesando MQTT:', error);
+    }
+});
 
-        // Cargar configuración guardada
-        function loadConfiguration() {
-            const saved = localStorage.getItem('kontrol_gas_config');
-            if (saved) {
-                try {
-                    currentConfig = JSON.parse(saved);
-                    document.getElementById('emptyWeightInput').value = currentConfig.empty_weight;
-                    document.getElementById('fullWeightInput').value = currentConfig.full_weight;
-                    console.log('✅ Configuración cargada:', currentConfig);
-                } catch (e) {
-                    console.error('❌ Error cargando configuración:', e);
-                }
-            }
-        }
+// Función para actualizar dashboard con datos MQTT
+function updateDataFromMQTT() {
+    if (!latestESP32Data) return;
+    
+    const totalWeight = latestESP32Data.weight;
+    const emptyWeight = currentConfig.empty_weight;
+    const fullWeight = currentConfig.full_weight;
+    
+    const netWeight = Math.max(0, totalWeight - emptyWeight);
+    const maxGas = fullWeight - emptyWeight;
+    const gasPercentage = Math.min(100, Math.max(0, (netWeight / maxGas) * 100));
+    
+    // Actualizar elementos del DOM
+    document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(3)} kg`;
+    document.getElementById('netWeight').textContent = `${netWeight.toFixed(3)} kg`;
+    document.getElementById('emptyWeight').textContent = `${emptyWeight} kg`;
+    document.getElementById('gasInfo').innerHTML = `
+        <div class="info-value">${netWeight.toFixed(3)} kg</div>
+        <div class="info-label">Gas Disponible</div>
+    `;
+    
+    // Actualizar medidor
+    updateGauge(gasPercentage);
+    
+    // Actualizar información del sistema
+    document.getElementById('dataSource').textContent = 'ESP32 MQTT';
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+    document.getElementById('esp32Status').textContent = 'Conectado MQTT';
+    
+    // Actualizar indicador de conexión
+    document.getElementById('connectionStatus').className = 'status-indicator status-connected';
+    
+    console.log(`✅ Dashboard actualizado: ${totalWeight.toFixed(3)} kg → ${gasPercentage.toFixed(1)}%`);
+}
 
-        // Guardar configuración
-        function saveConfiguration() {
-            const emptyWeight = parseFloat(document.getElementById('emptyWeightInput').value);
-            const fullWeight = parseFloat(document.getElementById('fullWeightInput').value);
-
-            if (isNaN(emptyWeight) || isNaN(fullWeight)) {
-                alert('❌ Por favor ingresa valores numéricos válidos');
-                return;
-            }
-
-            if (emptyWeight >= fullWeight) {
-                alert('❌ El peso lleno debe ser mayor al peso vacío');
-                return;
-            }
-
-            currentConfig.empty_weight = emptyWeight;
-            currentConfig.full_weight = fullWeight;
-
-            localStorage.setItem('kontrol_gas_config', JSON.stringify(currentConfig));
-            
-            console.log('💾 Configuración guardada:', currentConfig);
-            alert('✅ Configuración guardada correctamente');
-            
-            // Actualizar inmediatamente
-            updateData();
-        }
-
-        // Actualizar medidor circular
-        function updateGauge(percentage) {
-            const circumference = 251.2;
-            const offset = circumference - (percentage / 100) * circumference;
-            
-            const gaugeFill = document.getElementById('gaugeFill');
-            const gaugeText = document.getElementById('gaugeText');
-            
-            gaugeFill.style.strokeDasharray = `${circumference - offset} ${circumference}`;
-            gaugeText.textContent = `${percentage.toFixed(1)}%`;
-            
-            // Cambiar color según el nivel
-            if (percentage > 50) {
-                gaugeFill.style.stroke = '#4CAF50'; // Verde
-            } else if (percentage > 20) {
-                gaugeFill.style.stroke = '#FF9800'; // Naranja
-            } else {
-                gaugeFill.style.stroke = '#F44336'; // Rojo
-            }
-        }
-
-        // Actualizar datos del dashboard
-        async function updateData() {
-            try {
-                console.log('🔄 Actualizando datos...');
-                
-                const params = new URLSearchParams({
-                    empty_weight: currentConfig.empty_weight,
-                    full_weight: currentConfig.full_weight
-                });
-
-                const response = await fetch(`/api/datos?${params}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                console.log('📊 Datos recibidos:', result);
-
-                if (result.success && result.data) {
-                    const data = result.data;
-                    
-                    // Actualizar elementos del DOM
-                    document.getElementById('totalWeight').textContent = `${data.total_weight} kg`;
-                    document.getElementById('netWeight').textContent = `${data.net_weight} kg`;
-                    document.getElementById('emptyWeight').textContent = `${data.empty_weight} kg`;
-                    document.getElementById('gasInfo').innerHTML = `
-                        <div class="info-value">${data.net_weight} kg</div>
-                        <div class="info-label">Gas Disponible</div>
-                    `;
-                    
-                    // Actualizar medidor
-                    updateGauge(data.gas_percentage);
-                    
-                    // Actualizar información del sistema
-                    document.getElementById('dataSource').textContent = data.data_source === 'esp32_real' ? 'ESP32 Real' : 'Simulado';
-                    document.getElementById('lastUpdate').textContent = new Date(data.last_update).toLocaleTimeString();
-                    document.getElementById('esp32Status').textContent = data.esp32_connected ? 'Conectado' : 'Desconectado';
-                    
-                    // Actualizar indicador de conexión
-                    const statusIndicator = document.getElementById('connectionStatus');
-                    statusIndicator.className = `status-indicator ${
-                        data.esp32_connected ? 'status-connected' : 
-                        data.data_source === 'simulado' ? 'status-simulated' : 'status-disconnected'
-                    }`;
-                    
-                    // Actualizar contador
-                    updateCounter++;
-                    document.getElementById('updateCount').textContent = updateCounter;
-                    
-                    console.log('✅ Dashboard actualizado correctamente');
-                } else {
-                    throw new Error(result.error || 'Respuesta inválida del servidor');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error actualizando datos:', error);
-                
-                // Actualizar indicador como desconectado
-                document.getElementById('connectionStatus').className = 'status-indicator status-disconnected';
-                document.getElementById('esp32Status').textContent = 'Error';
-            }
-        }
-
-        // Inicializar aplicación
-        function initApp() {
-            console.log('🚀 Iniciando KontrolGas Dashboard...');
-            
-            // Cargar configuración
-            loadConfiguration();
-            
-            // Primera actualización
-            updateData();
-            
-            // Actualizar cada 8 segundos
-            setInterval(updateData, 8000);
-            
-            console.log('✅ Dashboard iniciado correctamente');
-        }
-
-        // Iniciar cuando se carga la página
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-</body>
-</html>
+// Modificar la función updateData existente para usar MQTT cuando esté disponible
+const originalUpdateData = updateData;
+updateData = async function() {
+    // Si hay datos MQTT recientes (menos de 30 segundos), usarlos
+    if (latestESP32Data && (Date.now() - latestESP32Data.received_at) < 30000) {
+        updateDataFromMQTT();
+        return;
+    }
+    
+    // Si no hay datos MQTT, usar API como fallback
+    await originalUpdateData();
+};
+</script>
