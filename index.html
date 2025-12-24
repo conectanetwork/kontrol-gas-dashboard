@@ -86,7 +86,7 @@
             letter-spacing: 0.5px;
         }
         
-        /* NUEVO DISEÑO DE GAUGE MINIMALISTA */
+        /* GRÁFICO SEMICIRCULAR PURO */
         .gauge-card {
             text-align: center;
             position: relative;
@@ -113,7 +113,7 @@
             left: 0;
             width: 280px;
             height: 140px;
-            border: 3px solid #e2e8f0;
+            border: 8px solid #e2e8f0;
             border-bottom: none;
             border-radius: 140px 140px 0 0;
         }
@@ -124,10 +124,11 @@
             left: 0;
             width: 280px;
             height: 140px;
-            border: 3px solid transparent;
+            border: 8px solid transparent;
             border-bottom: none;
             border-radius: 140px 140px 0 0;
             transition: all 1s ease-in-out;
+            transform-origin: center bottom;
         }
         
         .gauge-center {
@@ -140,7 +141,7 @@
         
         .gauge-percentage {
             font-size: 3.5rem;
-            font-weight: 100;
+            font-weight: 200;
             color: #2d3748;
             margin-bottom: 8px;
             letter-spacing: -2px;
@@ -154,34 +155,13 @@
             text-transform: uppercase;
         }
         
-        .gauge-markers {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 280px;
-            height: 140px;
-        }
-        
-        .gauge-marker {
-            position: absolute;
-            font-size: 0.75rem;
-            color: #a0aec0;
-            font-weight: 300;
-        }
-        
-        .marker-0 { bottom: -5px; left: 10px; }
-        .marker-25 { top: 80px; left: -10px; }
-        .marker-50 { top: 10px; left: 50%; transform: translateX(-50%); }
-        .marker-75 { top: 80px; right: -10px; }
-        .marker-100 { bottom: -5px; right: 10px; }
-        
-        /* VISOR DIGITAL MINIMALISTA */
+        /* VISOR DIGITAL CON FONDO PLOMO CLARO */
         .digital-card {
             text-align: center;
         }
         
         .digital-display {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #9ca3af;
             color: white;
             border-radius: 16px;
             padding: 50px 30px;
@@ -208,7 +188,7 @@
         
         .digital-value {
             font-size: 4rem;
-            font-weight: 100;
+            font-weight: 200;
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
             margin-bottom: 10px;
             letter-spacing: -1px;
@@ -434,6 +414,10 @@
             color: #e2e8f0;
         }
         
+        .dark-theme .digital-display {
+            background: #4a5568;
+        }
+        
         .dark-theme .input-field {
             background: #4a5568;
             border-color: #718096;
@@ -517,20 +501,13 @@
         </div>
         
         <div class="dashboard-grid">
-            <!-- NUEVO GRÁFICO SEMICIRCULAR MINIMALISTA -->
+            <!-- GRÁFICO SEMICIRCULAR PURO -->
             <div class="card gauge-card">
                 <h3 class="card-title">📊 Nivel de Líquido</h3>
                 <div class="gauge-container">
                     <div class="gauge-circle">
                         <div class="gauge-track"></div>
                         <div class="gauge-progress" id="gaugeProgress"></div>
-                        <div class="gauge-markers">
-                            <div class="gauge-marker marker-0">0%</div>
-                            <div class="gauge-marker marker-25">25%</div>
-                            <div class="gauge-marker marker-50">50%</div>
-                            <div class="gauge-marker marker-75">75%</div>
-                            <div class="gauge-marker marker-100">100%</div>
-                        </div>
                     </div>
                     <div class="gauge-center">
                         <div class="gauge-percentage" id="percentage">0.0%</div>
@@ -539,7 +516,7 @@
                 </div>
             </div>
             
-            <!-- Visor Digital -->
+            <!-- Visor Digital con Fondo Plomo -->
             <div class="card digital-card">
                 <h3 class="card-title">🔢 Peso Digital</h3>
                 <div class="digital-display">
@@ -767,36 +744,37 @@
             const gaugeProgress = document.getElementById('gaugeProgress');
             const gaugePercentage = document.getElementById('percentage');
             
-            // Calcular el gradiente cónico para el semicírculo
-            const angle = (percentage / 100) * 180; // 180 grados máximo para semicírculo
+            // Calcular el ángulo para el semicírculo (180 grados máximo)
+            const angle = (percentage / 100) * 180;
             
-            // Colores según porcentaje
+            // Colores según porcentaje (cambia conforme disminuye el peso)
             let color;
             if (percentage < 20) {
-                color = '#f56565'; // Rojo
+                color = '#f56565'; // Rojo - Crítico
             } else if (percentage < 40) {
-                color = '#ed8936'; // Naranja
+                color = '#ed8936'; // Naranja - Bajo
             } else if (percentage < 70) {
-                color = '#ecc94b'; // Amarillo
+                color = '#ecc94b'; // Amarillo - Medio
             } else if (percentage < 90) {
-                color = '#48bb78'; // Verde
+                color = '#48bb78'; // Verde - Bueno
             } else {
-                color = '#4299e1'; // Azul
+                color = '#4299e1'; // Azul - Lleno
             }
             
-            // Aplicar el gradiente cónico
+            // Crear gradiente cónico para el semicírculo
             gaugeProgress.style.background = `conic-gradient(
+                from 180deg,
                 ${color} 0deg,
                 ${color} ${angle}deg,
                 transparent ${angle}deg,
                 transparent 180deg
             )`;
             
-            // Crear máscara para semicírculo
+            // Aplicar máscara para crear solo el semicírculo superior
             gaugeProgress.style.mask = 'linear-gradient(0deg, transparent 50%, black 50%)';
             gaugeProgress.style.webkitMask = 'linear-gradient(0deg, transparent 50%, black 50%)';
             
-            // Actualizar color del texto
+            // Actualizar color del texto del porcentaje
             gaugePercentage.style.color = color;
         }
         
