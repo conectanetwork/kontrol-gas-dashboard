@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KontrolGas - Dashboard Profesional</title>
+    <title>KontrolGas - Dashboard Minimalista</title>
     <style>
         * {
             margin: 0;
@@ -13,40 +13,43 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: #f5f7fa;
             min-height: 100vh;
-            color: #333;
-            overflow-x: hidden;
+            color: #2d3748;
+            font-weight: 300;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px 20px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            color: white;
+            margin-bottom: 50px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         .logo {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
         
         .title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5rem;
+            font-weight: 200;
+            margin-bottom: 10px;
+            color: #2d3748;
+            letter-spacing: -1px;
         }
         
         .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: #718096;
             font-weight: 300;
         }
         
@@ -54,188 +57,257 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto;
-            gap: 25px;
-            margin-bottom: 30px;
+            gap: 30px;
+            margin-bottom: 40px;
         }
         
         .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         
         .card-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 25px;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: #4a5568;
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            letter-spacing: 0.5px;
         }
         
+        /* NUEVO DISEÑO DE GAUGE MINIMALISTA */
         .gauge-card {
             text-align: center;
+            position: relative;
         }
         
         .gauge-container {
             position: relative;
-            margin: 30px 0;
-            padding: 20px 0;
-        }
-        
-        .gauge-svg {
+            margin: 40px auto;
             width: 280px;
-            height: 180px; /* AUMENTADO para evitar corte */
-            margin: 0 auto;
-            display: block;
+            height: 200px;
         }
         
-        .gauge-bg {
-            stroke: #ecf0f1;
-            stroke-width: 14;
-            fill: none;
+        .gauge-circle {
+            position: relative;
+            width: 280px;
+            height: 140px;
+            margin: 0 auto 30px;
+            overflow: visible;
         }
         
-        .gauge-fill {
-            stroke: #27ae60;
-            stroke-width: 14;
-            fill: none;
-            stroke-linecap: round;
-            transition: stroke-dasharray 1s ease-in-out, stroke 0.5s ease;
+        .gauge-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 140px;
+            border: 3px solid #e2e8f0;
+            border-bottom: none;
+            border-radius: 140px 140px 0 0;
+        }
+        
+        .gauge-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 140px;
+            border: 3px solid transparent;
+            border-bottom: none;
+            border-radius: 140px 140px 0 0;
+            transition: all 1s ease-in-out;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin-top: 20px;
         }
         
         .gauge-percentage {
-            font-size: 3.2rem;
-            font-weight: 700;
-            color: #27ae60;
-            margin-top: 20px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: color 0.5s ease;
-        }
-        
-        .gauge-label {
-            font-size: 1.1rem;
-            color: #7f8c8d;
-            margin-top: 8px;
-            font-weight: 500;
-        }
-        
-        .digital-display {
-            text-align: center;
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 40px 20px;
-            margin: 20px 0;
-        }
-        
-        .digital-value {
-            font-size: 4.5rem;
-            font-weight: 800;
-            font-family: 'Courier New', monospace;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 3.5rem;
+            font-weight: 100;
+            color: #2d3748;
+            margin-bottom: 8px;
             letter-spacing: -2px;
         }
         
-        .digital-unit {
-            font-size: 1.8rem;
+        .gauge-label {
+            font-size: 0.9rem;
+            color: #718096;
             font-weight: 300;
-            opacity: 0.9;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
+        .gauge-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 140px;
+        }
+        
+        .gauge-marker {
+            position: absolute;
+            font-size: 0.75rem;
+            color: #a0aec0;
+            font-weight: 300;
+        }
+        
+        .marker-0 { bottom: -5px; left: 10px; }
+        .marker-25 { top: 80px; left: -10px; }
+        .marker-50 { top: 10px; left: 50%; transform: translateX(-50%); }
+        .marker-75 { top: 80px; right: -10px; }
+        .marker-100 { bottom: -5px; right: 10px; }
+        
+        /* VISOR DIGITAL MINIMALISTA */
+        .digital-card {
+            text-align: center;
+        }
+        
+        .digital-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 50px 30px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .digital-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .digital-value {
+            font-size: 4rem;
+            font-weight: 100;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .digital-unit {
+            font-size: 1.4rem;
+            font-weight: 200;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* GRÁFICO DE CONSUMO */
         .chart-card {
             grid-column: 1 / -1;
         }
         
         .chart-container {
             position: relative;
-            height: 400px;
-            margin: 20px 0;
+            height: 350px;
+            margin: 30px 0;
+            background: #fafbfc;
+            border-radius: 12px;
+            padding: 20px;
         }
         
         .chart-canvas {
             width: 100%;
             height: 100%;
-            border-radius: 10px;
         }
         
+        /* BARRA DE ESTADO MINIMALISTA */
         .status-bar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: white;
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            gap: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
         }
         
         .status-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-weight: 500;
+            gap: 12px;
+            font-weight: 300;
+            font-size: 0.9rem;
         }
         
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
         
         .status-connected {
-            background: #27ae60;
+            background: #48bb78;
         }
         
         .status-disconnected {
-            background: #e74c3c;
+            background: #f56565;
         }
         
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
         
+        /* PANEL DE CONFIGURACIÓN */
         .config-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         .config-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: #2d3748;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         
         .config-inputs {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 25px;
+            margin-bottom: 30px;
         }
         
         .input-group {
@@ -244,119 +316,132 @@
         }
         
         .input-label {
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            font-weight: 300;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
         }
         
         .input-field {
-            padding: 12px 16px;
-            border: 2px solid #bdc3c7;
-            border-radius: 10px;
+            padding: 15px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            background: white;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            background: #fafbfc;
         }
         
         .input-field:focus {
             outline: none;
-            border-color: #27ae60;
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
         .btn-group {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
         }
         
         .btn {
-            padding: 12px 24px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 300;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: 0.5px;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
         
         .btn-secondary {
-            background: #95a5a6;
-            color: white;
+            background: #e2e8f0;
+            color: #4a5568;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
         
         .mqtt-info {
-            background: rgba(52, 152, 219, 0.1);
-            border: 1px solid rgba(52, 152, 219, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #2980b9;
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 0.85rem;
+            color: #4c51bf;
+            font-weight: 300;
         }
         
-        /* Esquema de colores alternativo */
+        /* ESQUEMA DE COLORES ALTERNATIVO */
         .color-scheme-toggle {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
+            top: 25px;
+            right: 25px;
+            background: white;
+            border: 1px solid #e2e8f0;
             border-radius: 50px;
-            padding: 10px 20px;
+            padding: 12px 20px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 300;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .color-scheme-toggle:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
         
-        /* Esquema de colores suaves */
-        .soft-colors {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        /* ESQUEMA OSCURO */
+        .dark-theme {
+            background: #1a202c;
+            color: #e2e8f0;
         }
         
-        .soft-colors .gauge-fill {
-            stroke: #6c757d;
+        .dark-theme .card,
+        .dark-theme .header,
+        .dark-theme .status-bar,
+        .dark-theme .config-panel {
+            background: #2d3748;
+            border-color: #4a5568;
         }
         
-        .soft-colors .gauge-percentage {
-            color: #6c757d;
+        .dark-theme .title {
+            color: #e2e8f0;
         }
         
-        .soft-colors .digital-display {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        .dark-theme .gauge-track {
+            border-color: #4a5568;
         }
         
-        .soft-colors .btn-primary {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        .dark-theme .gauge-percentage {
+            color: #e2e8f0;
         }
         
-        .soft-colors .input-field:focus {
-            border-color: #6c757d;
-            box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
+        .dark-theme .input-field {
+            background: #4a5568;
+            border-color: #718096;
+            color: #e2e8f0;
         }
         
-        .soft-colors .status-connected {
-            background: #6c757d;
+        .dark-theme .chart-container {
+            background: #4a5568;
         }
         
         @media (max-width: 768px) {
@@ -378,42 +463,35 @@
             }
             
             .digital-value {
-                font-size: 3.5rem;
+                font-size: 3rem;
             }
             
             .gauge-percentage {
-                font-size: 2.5rem;
+                font-size: 2.8rem;
             }
             
-            .gauge-svg {
+            .gauge-container {
                 width: 240px;
-                height: 150px;
+                height: 160px;
             }
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            
+            .gauge-circle,
+            .gauge-track,
+            .gauge-progress {
+                width: 240px;
+                height: 120px;
+            }
         }
     </style>
 </head>
 <body>
-    <button class="color-scheme-toggle" onclick="toggleColorScheme()">🎨 Cambiar Colores</button>
+    <button class="color-scheme-toggle" onclick="toggleColorScheme()">🌙 Tema Oscuro</button>
     
     <div class="container">
         <div class="header">
             <div class="logo">⚖️</div>
             <h1 class="title">KontrolGas</h1>
-            <div class="subtitle">Dashboard Profesional - Monitoreo en Tiempo Real</div>
+            <div class="subtitle">Dashboard Minimalista - Monitoreo Profesional</div>
         </div>
         
         <div class="mqtt-info">
@@ -439,25 +517,30 @@
         </div>
         
         <div class="dashboard-grid">
-            <!-- Gráfico Semicircular CORREGIDO -->
+            <!-- NUEVO GRÁFICO SEMICIRCULAR MINIMALISTA -->
             <div class="card gauge-card">
                 <h3 class="card-title">📊 Nivel de Líquido</h3>
                 <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 200 120">
-                        <path class="gauge-bg" d="M 20 90 A 80 80 0 0 1 180 90"></path>
-                        <path class="gauge-fill" id="gaugeFill" d="M 20 90 A 80 80 0 0 1 20 90"></path>
-                        <!-- Marcadores de porcentaje -->
-                        <text x="20" y="105" font-size="10" fill="#7f8c8d" text-anchor="middle">0%</text>
-                        <text x="100" y="25" font-size="10" fill="#7f8c8d" text-anchor="middle">50%</text>
-                        <text x="180" y="105" font-size="10" fill="#7f8c8d" text-anchor="middle">100%</text>
-                    </svg>
-                    <div class="gauge-percentage" id="percentage">0.0%</div>
-                    <div class="gauge-label">Disponible</div>
+                    <div class="gauge-circle">
+                        <div class="gauge-track"></div>
+                        <div class="gauge-progress" id="gaugeProgress"></div>
+                        <div class="gauge-markers">
+                            <div class="gauge-marker marker-0">0%</div>
+                            <div class="gauge-marker marker-25">25%</div>
+                            <div class="gauge-marker marker-50">50%</div>
+                            <div class="gauge-marker marker-75">75%</div>
+                            <div class="gauge-marker marker-100">100%</div>
+                        </div>
+                    </div>
+                    <div class="gauge-center">
+                        <div class="gauge-percentage" id="percentage">0.0%</div>
+                        <div class="gauge-label">Disponible</div>
+                    </div>
                 </div>
             </div>
             
             <!-- Visor Digital -->
-            <div class="card">
+            <div class="card digital-card">
                 <h3 class="card-title">🔢 Peso Digital</h3>
                 <div class="digital-display">
                     <div class="digital-value" id="digitalWeight">0.00</div>
@@ -511,9 +594,7 @@
         let connectionAttempts = 0;
         const maxConnectionAttempts = 5;
         let consumptionChart = null;
-        let weightHistory = [];
-        const maxHistoryPoints = 24;
-        let currentColorScheme = 'default';
+        let currentTheme = 'light';
         
         // Configuración MQTT
         const brokerUrl = 'wss://test.mosquitto.org:8081';
@@ -521,9 +602,9 @@
         
         // Inicializar dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando Dashboard Profesional KontrolGas');
+            console.log('🚀 Iniciando Dashboard Minimalista KontrolGas');
             loadConfiguration();
-            loadColorScheme();
+            loadTheme();
             initializeChart();
             connectMQTT();
             
@@ -535,31 +616,48 @@
         });
         
         function toggleColorScheme() {
-            if (currentColorScheme === 'default') {
-                document.body.classList.add('soft-colors');
-                currentColorScheme = 'soft';
-                localStorage.setItem('colorScheme', 'soft');
+            const toggleBtn = document.querySelector('.color-scheme-toggle');
+            
+            if (currentTheme === 'light') {
+                document.body.classList.add('dark-theme');
+                currentTheme = 'dark';
+                toggleBtn.textContent = '☀️ Tema Claro';
+                localStorage.setItem('theme', 'dark');
             } else {
-                document.body.classList.remove('soft-colors');
-                currentColorScheme = 'default';
-                localStorage.setItem('colorScheme', 'default');
+                document.body.classList.remove('dark-theme');
+                currentTheme = 'light';
+                toggleBtn.textContent = '🌙 Tema Oscuro';
+                localStorage.setItem('theme', 'light');
             }
             
             // Actualizar colores del gráfico
             if (consumptionChart) {
-                const newColor = currentColorScheme === 'soft' ? '#6c757d' : '#27ae60';
-                consumptionChart.data.datasets[0].borderColor = newColor;
-                consumptionChart.data.datasets[0].backgroundColor = newColor + '20';
-                consumptionChart.data.datasets[0].pointBackgroundColor = newColor;
+                const isDark = currentTheme === 'dark';
+                const chartColor = isDark ? '#667eea' : '#4299e1';
+                const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+                const textColor = isDark ? '#e2e8f0' : '#2d3748';
+                
+                consumptionChart.data.datasets[0].borderColor = chartColor;
+                consumptionChart.data.datasets[0].backgroundColor = chartColor + '20';
+                consumptionChart.data.datasets[0].pointBackgroundColor = chartColor;
+                
+                consumptionChart.options.scales.x.grid.color = gridColor;
+                consumptionChart.options.scales.y.grid.color = gridColor;
+                consumptionChart.options.scales.x.ticks.color = textColor;
+                consumptionChart.options.scales.y.ticks.color = textColor;
+                consumptionChart.options.scales.x.title.color = textColor;
+                consumptionChart.options.scales.y.title.color = textColor;
+                
                 consumptionChart.update();
             }
         }
         
-        function loadColorScheme() {
-            const savedScheme = localStorage.getItem('colorScheme');
-            if (savedScheme === 'soft') {
-                document.body.classList.add('soft-colors');
-                currentColorScheme = 'soft';
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                currentTheme = 'dark';
+                document.querySelector('.color-scheme-toggle').textContent = '☀️ Tema Claro';
             }
         }
         
@@ -647,7 +745,7 @@
             const totalCapacity = fullWeight - emptyWeight;
             const percentage = Math.max(0, Math.min(100, (liquidWeight / totalCapacity) * 100));
             
-            // Actualizar visor digital (peso del líquido disponible)
+            // Actualizar visor digital
             document.getElementById('digitalWeight').textContent = liquidWeight.toFixed(2);
             
             // Actualizar porcentaje con 1 decimal
@@ -666,55 +764,40 @@
         }
         
         function updateGauge(percentage) {
-            const gauge = document.getElementById('gaugeFill');
+            const gaugeProgress = document.getElementById('gaugeProgress');
             const gaugePercentage = document.getElementById('percentage');
             
-            // Calcular el arco basado en el porcentaje (semicírculo de 180 grados)
-            const angle = (percentage / 100) * 180;
-            const radians = (angle * Math.PI) / 180;
+            // Calcular el gradiente cónico para el semicírculo
+            const angle = (percentage / 100) * 180; // 180 grados máximo para semicírculo
             
-            // Punto inicial (izquierda del semicírculo)
-            const startX = 20;
-            const startY = 90;
-            
-            // Punto final basado en el ángulo
-            const endX = 100 + 80 * Math.cos(Math.PI - radians);
-            const endY = 90 - 80 * Math.sin(Math.PI - radians);
-            
-            // Determinar si necesitamos el arco largo
-            const largeArcFlag = angle > 90 ? 1 : 0;
-            
-            // Crear el path del arco
-            const path = `M ${startX} ${startY} A 80 80 0 ${largeArcFlag} 1 ${endX} ${endY}`;
-            gauge.setAttribute('d', path);
-            
-            // Cambiar colores según porcentaje
-            let color, textColor;
+            // Colores según porcentaje
+            let color;
             if (percentage < 20) {
-                color = '#e74c3c'; // Rojo
-                textColor = '#e74c3c';
+                color = '#f56565'; // Rojo
             } else if (percentage < 40) {
-                color = '#f39c12'; // Naranja
-                textColor = '#f39c12';
+                color = '#ed8936'; // Naranja
             } else if (percentage < 70) {
-                color = '#f1c40f'; // Amarillo
-                textColor = '#f1c40f';
+                color = '#ecc94b'; // Amarillo
             } else if (percentage < 90) {
-                color = '#27ae60'; // Verde
-                textColor = '#27ae60';
+                color = '#48bb78'; // Verde
             } else {
-                color = '#3498db'; // Azul
-                textColor = '#3498db';
+                color = '#4299e1'; // Azul
             }
             
-            // Aplicar colores considerando el esquema actual
-            if (currentColorScheme === 'soft') {
-                color = '#6c757d';
-                textColor = '#6c757d';
-            }
+            // Aplicar el gradiente cónico
+            gaugeProgress.style.background = `conic-gradient(
+                ${color} 0deg,
+                ${color} ${angle}deg,
+                transparent ${angle}deg,
+                transparent 180deg
+            )`;
             
-            gauge.setAttribute('stroke', color);
-            gaugePercentage.style.color = textColor;
+            // Crear máscara para semicírculo
+            gaugeProgress.style.mask = 'linear-gradient(0deg, transparent 50%, black 50%)';
+            gaugeProgress.style.webkitMask = 'linear-gradient(0deg, transparent 50%, black 50%)';
+            
+            // Actualizar color del texto
+            gaugePercentage.style.color = color;
         }
         
         function updateConnectionStatus(message, isConnected) {
@@ -741,7 +824,10 @@
                 labels.push(time.getHours().toString().padStart(2, '0') + ':00');
             }
             
-            const chartColor = currentColorScheme === 'soft' ? '#6c757d' : '#27ae60';
+            const isDark = currentTheme === 'dark';
+            const chartColor = isDark ? '#667eea' : '#4299e1';
+            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            const textColor = isDark ? '#e2e8f0' : '#2d3748';
             
             consumptionChart = new Chart(ctx, {
                 type: 'line',
@@ -752,14 +838,14 @@
                         data: new Array(24).fill(null),
                         borderColor: chartColor,
                         backgroundColor: chartColor + '20',
-                        borderWidth: 3,
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.4,
                         pointBackgroundColor: chartColor,
                         pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 8
+                        pointBorderWidth: 1,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
@@ -776,12 +862,21 @@
                                 display: true,
                                 text: 'Hora',
                                 font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
+                                    size: 12,
+                                    weight: '300'
+                                },
+                                color: textColor
                             },
                             grid: {
-                                color: 'rgba(0,0,0,0.1)'
+                                color: gridColor,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    size: 11,
+                                    weight: '300'
+                                }
                             }
                         },
                         y: {
@@ -789,19 +884,23 @@
                                 display: true,
                                 text: 'Peso (kg)',
                                 font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
+                                    size: 12,
+                                    weight: '300'
+                                },
+                                color: textColor
                             },
                             grid: {
-                                color: 'rgba(0,0,0,0.1)'
+                                color: gridColor,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    size: 11,
+                                    weight: '300'
+                                }
                             },
                             beginAtZero: true
-                        }
-                    },
-                    elements: {
-                        point: {
-                            hoverBackgroundColor: chartColor
                         }
                     }
                 }
@@ -920,4 +1019,4 @@
         }
     </script>
 </body>
-</html
+</html>
