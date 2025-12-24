@@ -1,33 +1,48 @@
 // Almacenamiento global para datos del ESP32
 global.esp32Data = global.esp32Data || null;
 
-export default function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+exports.handler = async (event, context) => {
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
   
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
   }
 
-  if (req.method === 'GET') {
-    return res.status(200).json({
-      message: "Endpoint para recibir datos del ESP32 via POST",
-      last_data: global.esp32Data,
-      status: "active"
-    });
+  if (event.httpMethod === 'GET') {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        message: "Endpoint para recibir datos del ESP32 via POST",
+        last_data: global.esp32Data,
+        status: "active"
+      })
+    };
   }
 
-  if (req.method === 'POST') {
+  if (event.httpMethod === 'POST') {
     try {
-      const data = req.body;
+      const data = JSON.parse(event.body || '{}');
       
       if (!data || typeof data.weight !== 'number') {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Datos inválidos. Se requiere peso numérico.' 
-        });
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            error: 'Datos inválidos. Se requiere peso numérico.' 
+          })
+        };
       }
 
       // Almacenar datos con timestamp
@@ -39,21 +54,35 @@ export default function handler(req, res) {
 
       console.log(`[ESP32] ✅ Datos recibidos: ${data.weight} kg`);
 
-      return res.status(200).json({
-        success: true,
-        message: "Datos recibidos correctamente",
-        weight: data.weight,
-        timestamp: global.esp32Data.timestamp
-      });
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: "Datos recibidos correctamente",
+          weight: data.weight,
+          timestamp: global.esp32Data.timestamp
+        })
+      };
 
     } catch (error) {
       console.error('[ESP32] Error:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Error interno del servidor' 
-      });
+      
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Error interno del servidor',
+          message: error.message 
+        })
+      };
     }
   }
 
-  return res.status(405).json({ error: 'Método no permitido' });
-}
+  return {
+    statusCode: 405,
+    headers,
+    body: JSON.stringify({ error: 'Método no permitido' })
+  };
+};
