@@ -86,7 +86,7 @@
             letter-spacing: 0.5px;
         }
         
-        /* GRÁFICO SEMICIRCULAR PURO */
+        /* GRÁFICO SEMICIRCULAR SVG LIMPIO */
         .gauge-card {
             text-align: center;
             position: relative;
@@ -95,48 +95,37 @@
         .gauge-container {
             position: relative;
             margin: 40px auto;
-            width: 280px;
+            width: 300px;
             height: 200px;
         }
         
-        .gauge-circle {
-            position: relative;
-            width: 280px;
-            height: 140px;
-            margin: 0 auto 30px;
-            overflow: visible;
+        .gauge-svg {
+            width: 300px;
+            height: 180px;
+            margin: 0 auto;
+            display: block;
         }
         
         .gauge-track {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 280px;
-            height: 140px;
-            border: 8px solid #e2e8f0;
-            border-bottom: none;
-            border-radius: 140px 140px 0 0;
+            stroke: #e2e8f0;
+            stroke-width: 12;
+            fill: none;
+            stroke-linecap: round;
         }
         
-        .gauge-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 280px;
-            height: 140px;
-            border: 8px solid transparent;
-            border-bottom: none;
-            border-radius: 140px 140px 0 0;
-            transition: all 1s ease-in-out;
-            transform-origin: center bottom;
+        .gauge-fill {
+            stroke: #48bb78;
+            stroke-width: 12;
+            fill: none;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1.5s ease-in-out, stroke 0.5s ease;
         }
         
         .gauge-center {
             position: absolute;
-            top: 50%;
+            top: 60%;
             left: 50%;
             transform: translate(-50%, -50%);
-            margin-top: 20px;
         }
         
         .gauge-percentage {
@@ -145,6 +134,7 @@
             color: #2d3748;
             margin-bottom: 8px;
             letter-spacing: -2px;
+            transition: color 0.5s ease;
         }
         
         .gauge-label {
@@ -407,7 +397,7 @@
         }
         
         .dark-theme .gauge-track {
-            border-color: #4a5568;
+            stroke: #4a5568;
         }
         
         .dark-theme .gauge-percentage {
@@ -455,15 +445,13 @@
             }
             
             .gauge-container {
-                width: 240px;
-                height: 160px;
+                width: 260px;
+                height: 170px;
             }
             
-            .gauge-circle,
-            .gauge-track,
-            .gauge-progress {
-                width: 240px;
-                height: 120px;
+            .gauge-svg {
+                width: 260px;
+                height: 150px;
             }
         }
     </style>
@@ -501,14 +489,16 @@
         </div>
         
         <div class="dashboard-grid">
-            <!-- GRÁFICO SEMICIRCULAR PURO -->
+            <!-- GRÁFICO SEMICIRCULAR SVG LIMPIO -->
             <div class="card gauge-card">
                 <h3 class="card-title">📊 Nivel de Líquido</h3>
                 <div class="gauge-container">
-                    <div class="gauge-circle">
-                        <div class="gauge-track"></div>
-                        <div class="gauge-progress" id="gaugeProgress"></div>
-                    </div>
+                    <svg class="gauge-svg" viewBox="0 0 200 120">
+                        <!-- Pista de fondo -->
+                        <path class="gauge-track" d="M 30 90 A 70 70 0 0 1 170 90" stroke-dasharray="219.9" stroke-dashoffset="0"></path>
+                        <!-- Progreso -->
+                        <path class="gauge-fill" id="gaugeFill" d="M 30 90 A 70 70 0 0 1 170 90" stroke-dasharray="219.9" stroke-dashoffset="219.9"></path>
+                    </svg>
                     <div class="gauge-center">
                         <div class="gauge-percentage" id="percentage">0.0%</div>
                         <div class="gauge-label">Disponible</div>
@@ -741,11 +731,15 @@
         }
         
         function updateGauge(percentage) {
-            const gaugeProgress = document.getElementById('gaugeProgress');
+            const gaugeFill = document.getElementById('gaugeFill');
             const gaugePercentage = document.getElementById('percentage');
             
-            // Calcular el ángulo para el semicírculo (180 grados máximo)
-            const angle = (percentage / 100) * 180;
+            // Calcular el stroke-dashoffset basado en el porcentaje
+            const circumference = 219.9; // Longitud del arco semicircular
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            // Aplicar el offset para mostrar el progreso
+            gaugeFill.style.strokeDashoffset = offset;
             
             // Colores según porcentaje (cambia conforme disminuye el peso)
             let color;
@@ -761,20 +755,8 @@
                 color = '#4299e1'; // Azul - Lleno
             }
             
-            // Crear gradiente cónico para el semicírculo
-            gaugeProgress.style.background = `conic-gradient(
-                from 180deg,
-                ${color} 0deg,
-                ${color} ${angle}deg,
-                transparent ${angle}deg,
-                transparent 180deg
-            )`;
-            
-            // Aplicar máscara para crear solo el semicírculo superior
-            gaugeProgress.style.mask = 'linear-gradient(0deg, transparent 50%, black 50%)';
-            gaugeProgress.style.webkitMask = 'linear-gradient(0deg, transparent 50%, black 50%)';
-            
-            // Actualizar color del texto del porcentaje
+            // Aplicar color al gauge y al texto
+            gaugeFill.style.stroke = color;
             gaugePercentage.style.color = color;
         }
         
