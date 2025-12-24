@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             min-height: 100vh;
             color: #333;
             overflow-x: hidden;
@@ -77,7 +77,7 @@
             font-size: 1.4rem;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -89,48 +89,50 @@
         
         .gauge-container {
             position: relative;
-            margin: 20px 0;
+            margin: 30px 0;
+            padding: 20px 0;
         }
         
         .gauge-svg {
             width: 280px;
-            height: 140px;
+            height: 180px; /* AUMENTADO para evitar corte */
             margin: 0 auto;
             display: block;
         }
         
         .gauge-bg {
-            stroke: #e8eaf6;
-            stroke-width: 12;
+            stroke: #ecf0f1;
+            stroke-width: 14;
             fill: none;
         }
         
         .gauge-fill {
-            stroke: #3f51b5;
-            stroke-width: 12;
+            stroke: #27ae60;
+            stroke-width: 14;
             fill: none;
             stroke-linecap: round;
-            transition: stroke-dasharray 1s ease-in-out;
+            transition: stroke-dasharray 1s ease-in-out, stroke 0.5s ease;
         }
         
         .gauge-percentage {
             font-size: 3.2rem;
             font-weight: 700;
-            color: #3f51b5;
-            margin-top: 15px;
+            color: #27ae60;
+            margin-top: 20px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: color 0.5s ease;
         }
         
         .gauge-label {
             font-size: 1.1rem;
-            color: #666;
-            margin-top: 5px;
+            color: #7f8c8d;
+            margin-top: 8px;
             font-weight: 500;
         }
         
         .digital-display {
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
             border-radius: 15px;
             padding: 40px 20px;
@@ -197,11 +199,11 @@
         }
         
         .status-connected {
-            background: #4caf50;
+            background: #27ae60;
         }
         
         .status-disconnected {
-            background: #f44336;
+            background: #e74c3c;
         }
         
         @keyframes pulse {
@@ -250,7 +252,7 @@
         
         .input-field {
             padding: 12px 16px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid #bdc3c7;
             border-radius: 10px;
             font-size: 1rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -259,8 +261,8 @@
         
         .input-field:focus {
             outline: none;
-            border-color: #3f51b5;
-            box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.1);
+            border-color: #27ae60;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
         }
         
         .btn-group {
@@ -283,12 +285,12 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
         }
         
         .btn-secondary {
-            background: #6c757d;
+            background: #95a5a6;
             color: white;
         }
         
@@ -298,13 +300,63 @@
         }
         
         .mqtt-info {
-            background: rgba(33, 150, 243, 0.1);
-            border: 1px solid rgba(33, 150, 243, 0.2);
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.2);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
             font-size: 0.9rem;
-            color: #1976d2;
+            color: #2980b9;
+        }
+        
+        /* Esquema de colores alternativo */
+        .color-scheme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .color-scheme-toggle:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        
+        /* Esquema de colores suaves */
+        .soft-colors {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .soft-colors .gauge-fill {
+            stroke: #6c757d;
+        }
+        
+        .soft-colors .gauge-percentage {
+            color: #6c757d;
+        }
+        
+        .soft-colors .digital-display {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .soft-colors .btn-primary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .soft-colors .input-field:focus {
+            border-color: #6c757d;
+            box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
+        }
+        
+        .soft-colors .status-connected {
+            background: #6c757d;
         }
         
         @media (max-width: 768px) {
@@ -332,6 +384,11 @@
             .gauge-percentage {
                 font-size: 2.5rem;
             }
+            
+            .gauge-svg {
+                width: 240px;
+                height: 150px;
+            }
         }
         
         .loading {
@@ -350,6 +407,8 @@
     </style>
 </head>
 <body>
+    <button class="color-scheme-toggle" onclick="toggleColorScheme()">🎨 Cambiar Colores</button>
+    
     <div class="container">
         <div class="header">
             <div class="logo">⚖️</div>
@@ -380,13 +439,17 @@
         </div>
         
         <div class="dashboard-grid">
-            <!-- Gráfico Semicircular -->
+            <!-- Gráfico Semicircular CORREGIDO -->
             <div class="card gauge-card">
                 <h3 class="card-title">📊 Nivel de Líquido</h3>
                 <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 200 100">
-                        <path class="gauge-bg" d="M 20 80 A 80 80 0 0 1 180 80"></path>
-                        <path class="gauge-fill" id="gaugeFill" d="M 20 80 A 80 80 0 0 1 20 80"></path>
+                    <svg class="gauge-svg" viewBox="0 0 200 120">
+                        <path class="gauge-bg" d="M 20 90 A 80 80 0 0 1 180 90"></path>
+                        <path class="gauge-fill" id="gaugeFill" d="M 20 90 A 80 80 0 0 1 20 90"></path>
+                        <!-- Marcadores de porcentaje -->
+                        <text x="20" y="105" font-size="10" fill="#7f8c8d" text-anchor="middle">0%</text>
+                        <text x="100" y="25" font-size="10" fill="#7f8c8d" text-anchor="middle">50%</text>
+                        <text x="180" y="105" font-size="10" fill="#7f8c8d" text-anchor="middle">100%</text>
                     </svg>
                     <div class="gauge-percentage" id="percentage">0.0%</div>
                     <div class="gauge-label">Disponible</div>
@@ -449,7 +512,8 @@
         const maxConnectionAttempts = 5;
         let consumptionChart = null;
         let weightHistory = [];
-        const maxHistoryPoints = 24; // 24 horas
+        const maxHistoryPoints = 24;
+        let currentColorScheme = 'default';
         
         // Configuración MQTT
         const brokerUrl = 'wss://test.mosquitto.org:8081';
@@ -459,6 +523,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Iniciando Dashboard Profesional KontrolGas');
             loadConfiguration();
+            loadColorScheme();
             initializeChart();
             connectMQTT();
             
@@ -466,8 +531,37 @@
             setInterval(updateDisplay, 3000);
             
             // Guardar datos históricos cada hora
-            setInterval(saveHistoricalData, 3600000); // 1 hora
+            setInterval(saveHistoricalData, 3600000);
         });
+        
+        function toggleColorScheme() {
+            if (currentColorScheme === 'default') {
+                document.body.classList.add('soft-colors');
+                currentColorScheme = 'soft';
+                localStorage.setItem('colorScheme', 'soft');
+            } else {
+                document.body.classList.remove('soft-colors');
+                currentColorScheme = 'default';
+                localStorage.setItem('colorScheme', 'default');
+            }
+            
+            // Actualizar colores del gráfico
+            if (consumptionChart) {
+                const newColor = currentColorScheme === 'soft' ? '#6c757d' : '#27ae60';
+                consumptionChart.data.datasets[0].borderColor = newColor;
+                consumptionChart.data.datasets[0].backgroundColor = newColor + '20';
+                consumptionChart.data.datasets[0].pointBackgroundColor = newColor;
+                consumptionChart.update();
+            }
+        }
+        
+        function loadColorScheme() {
+            const savedScheme = localStorage.getItem('colorScheme');
+            if (savedScheme === 'soft') {
+                document.body.classList.add('soft-colors');
+                currentColorScheme = 'soft';
+            }
+        }
         
         function connectMQTT() {
             connectionAttempts++;
@@ -573,35 +667,54 @@
         
         function updateGauge(percentage) {
             const gauge = document.getElementById('gaugeFill');
-            const circumference = 2 * Math.PI * 80; // Radio 80
-            const halfCircumference = circumference / 2;
-            const offset = halfCircumference - (percentage / 100) * halfCircumference;
+            const gaugePercentage = document.getElementById('percentage');
             
-            // Crear el arco basado en el porcentaje
-            const angle = (percentage / 100) * 160; // 160 grados máximo
-            const startAngle = 200; // Ángulo inicial en grados
-            const endAngle = startAngle + angle;
+            // Calcular el arco basado en el porcentaje (semicírculo de 180 grados)
+            const angle = (percentage / 100) * 180;
+            const radians = (angle * Math.PI) / 180;
             
-            const startX = 100 + 80 * Math.cos((startAngle * Math.PI) / 180);
-            const startY = 80 + 80 * Math.sin((startAngle * Math.PI) / 180);
-            const endX = 100 + 80 * Math.cos((endAngle * Math.PI) / 180);
-            const endY = 80 + 80 * Math.sin((endAngle * Math.PI) / 180);
+            // Punto inicial (izquierda del semicírculo)
+            const startX = 20;
+            const startY = 90;
             
-            const largeArcFlag = angle > 80 ? 1 : 0;
+            // Punto final basado en el ángulo
+            const endX = 100 + 80 * Math.cos(Math.PI - radians);
+            const endY = 90 - 80 * Math.sin(Math.PI - radians);
+            
+            // Determinar si necesitamos el arco largo
+            const largeArcFlag = angle > 90 ? 1 : 0;
+            
+            // Crear el path del arco
             const path = `M ${startX} ${startY} A 80 80 0 ${largeArcFlag} 1 ${endX} ${endY}`;
-            
             gauge.setAttribute('d', path);
             
-            // Cambiar color según porcentaje
+            // Cambiar colores según porcentaje
+            let color, textColor;
             if (percentage < 20) {
-                gauge.setAttribute('stroke', '#f44336'); // Rojo
-            } else if (percentage < 50) {
-                gauge.setAttribute('stroke', '#ff9800'); // Naranja
-            } else if (percentage < 80) {
-                gauge.setAttribute('stroke', '#4caf50'); // Verde
+                color = '#e74c3c'; // Rojo
+                textColor = '#e74c3c';
+            } else if (percentage < 40) {
+                color = '#f39c12'; // Naranja
+                textColor = '#f39c12';
+            } else if (percentage < 70) {
+                color = '#f1c40f'; // Amarillo
+                textColor = '#f1c40f';
+            } else if (percentage < 90) {
+                color = '#27ae60'; // Verde
+                textColor = '#27ae60';
             } else {
-                gauge.setAttribute('stroke', '#2196f3'); // Azul
+                color = '#3498db'; // Azul
+                textColor = '#3498db';
             }
+            
+            // Aplicar colores considerando el esquema actual
+            if (currentColorScheme === 'soft') {
+                color = '#6c757d';
+                textColor = '#6c757d';
+            }
+            
+            gauge.setAttribute('stroke', color);
+            gaugePercentage.style.color = textColor;
         }
         
         function updateConnectionStatus(message, isConnected) {
@@ -628,6 +741,8 @@
                 labels.push(time.getHours().toString().padStart(2, '0') + ':00');
             }
             
+            const chartColor = currentColorScheme === 'soft' ? '#6c757d' : '#27ae60';
+            
             consumptionChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -635,12 +750,12 @@
                     datasets: [{
                         label: 'Peso (kg)',
                         data: new Array(24).fill(null),
-                        borderColor: '#3f51b5',
-                        backgroundColor: 'rgba(63, 81, 181, 0.1)',
+                        borderColor: chartColor,
+                        backgroundColor: chartColor + '20',
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#3f51b5',
+                        pointBackgroundColor: chartColor,
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: 5,
@@ -686,7 +801,7 @@
                     },
                     elements: {
                         point: {
-                            hoverBackgroundColor: '#3f51b5'
+                            hoverBackgroundColor: chartColor
                         }
                     }
                 }
@@ -704,7 +819,7 @@
             
             // Actualizar el punto correspondiente a la hora actual
             consumptionChart.data.datasets[0].data[currentHour] = weight;
-            consumptionChart.update('none'); // Actualización sin animación para mejor rendimiento
+            consumptionChart.update('none');
         }
         
         function saveHistoricalData() {
@@ -805,4 +920,4 @@
         }
     </script>
 </body>
-</html>
+</html
