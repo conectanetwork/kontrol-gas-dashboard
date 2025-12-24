@@ -1,79 +1,464 @@
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-<script>
-// Configuración MQTT
-const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
-let latestESP32Data = null;
-
-mqttClient.on('connect', function () {
-    console.log('✅ MQTT conectado');
-    mqttClient.subscribe('kontrol-gas/esp32/weight', function (err) {
-        if (!err) {
-            console.log('✅ Suscrito a topic MQTT');
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KontrolGas - Dashboard MQTT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    });
-});
-
-mqttClient.on('message', function (topic, message) {
-    try {
-        const data = JSON.parse(message.toString());
-        latestESP32Data = {
-            ...data,
-            received_at: Date.now()
-        };
-        console.log('📥 Datos MQTT recibidos:', data.weight, 'kg');
         
-        // Actualizar dashboard inmediatamente
-        updateDataFromMQTT();
-    } catch (error) {
-        console.error('❌ Error procesando MQTT:', error);
-    }
-});
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .weight-display {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .weight-value {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .weight-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .gauge-container {
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .gauge {
+            width: 300px;
+            height: 150px;
+            margin: 0 auto;
+        }
+        
+        .percentage {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .config-inputs {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .config-input {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .config-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .config-input input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .connection-status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .mqtt-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="logo">⚖️</div>
+            <h1>KontrolGas</h1>
+            <div class="subtitle">Dashboard MQTT en Tiempo Real</div>
+        </div>
+        
+        <div class="mqtt-info">
+            <strong>📡 Broker MQTT:</strong> test.mosquitto.org:1883<br>
+            <strong>📤 Topic:</strong> kontrol-gas/esp32/weight<br>
+            <strong>🔄 Actualización:</strong> Automática cada 3 segundos
+        </div>
+        
+        <div class="connection-status disconnected" id="connectionStatus">
+            🔍 Conectando al broker MQTT...
+        </div>
+        
+        <div class="weight-display">
+            <div class="weight-value" id="weightValue">0.000</div>
+            <div class="weight-label">kg</div>
+        </div>
+        
+        <div class="gauge-container">
+            <svg class="gauge" viewBox="0 0 200 100">
+                <path d="M 20 80 A 80 80 0 0 1 180 80" stroke="#e0e0e0" stroke-width="20" fill="none"/>
+                <path id="gaugeFill" d="M 20 80 A 80 80 0 0 1 20 80" stroke="#667eea" stroke-width="20" fill="none"/>
+            </svg>
+            <div class="percentage" id="percentage">0%</div>
+        </div>
+        
+        <div class="status">
+            <div class="status-item">
+                <div class="status-label">Cliente ESP32</div>
+                <div class="status-value" id="clientId">-</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Última Actualización</div>
+                <div class="status-value" id="lastUpdate">-</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">RSSI WiFi</div>
+                <div class="status-value" id="rssi">-</div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <h3>⚙️ Configuración de Pesos</h3>
+            <div class="config-inputs">
+                <div class="config-input">
+                    <label for="emptyWeight">Peso Vacío (kg):</label>
+                    <input type="number" id="emptyWeight" value="5.0" step="0.1" min="0">
+                </div>
+                <div class="config-input">
+                    <label for="fullWeight">Peso Lleno (kg):</label>
+                    <input type="number" id="fullWeight" value="15.0" step="0.1" min="0">
+                </div>
+            </div>
+            <button class="btn" onclick="saveConfiguration()">💾 Guardar Configuración</button>
+            <button class="btn" onclick="resetConfiguration()">🔄 Restablecer</button>
+        </div>
+    </div>
 
-// Función para actualizar dashboard con datos MQTT
-function updateDataFromMQTT() {
-    if (!latestESP32Data) return;
+    <!-- MQTT.js Library -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
-    const totalWeight = latestESP32Data.weight;
-    const emptyWeight = currentConfig.empty_weight;
-    const fullWeight = currentConfig.full_weight;
-    
-    const netWeight = Math.max(0, totalWeight - emptyWeight);
-    const maxGas = fullWeight - emptyWeight;
-    const gasPercentage = Math.min(100, Math.max(0, (netWeight / maxGas) * 100));
-    
-    // Actualizar elementos del DOM
-    document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(3)} kg`;
-    document.getElementById('netWeight').textContent = `${netWeight.toFixed(3)} kg`;
-    document.getElementById('emptyWeight').textContent = `${emptyWeight} kg`;
-    document.getElementById('gasInfo').innerHTML = `
-        <div class="info-value">${netWeight.toFixed(3)} kg</div>
-        <div class="info-label">Gas Disponible</div>
-    `;
-    
-    // Actualizar medidor
-    updateGauge(gasPercentage);
-    
-    // Actualizar información del sistema
-    document.getElementById('dataSource').textContent = 'ESP32 MQTT';
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-    document.getElementById('esp32Status').textContent = 'Conectado MQTT';
-    
-    // Actualizar indicador de conexión
-    document.getElementById('connectionStatus').className = 'status-indicator status-connected';
-    
-    console.log(`✅ Dashboard actualizado: ${totalWeight.toFixed(3)} kg → ${gasPercentage.toFixed(1)}%`);
-}
-
-// Modificar la función updateData existente para usar MQTT cuando esté disponible
-const originalUpdateData = updateData;
-updateData = async function() {
-    // Si hay datos MQTT recientes (menos de 30 segundos), usarlos
-    if (latestESP32Data && (Date.now() - latestESP32Data.received_at) < 30000) {
-        updateDataFromMQTT();
-        return;
-    }
-    
-    // Si no hay datos MQTT, usar API como fallback
-    await originalUpdateData();
-};
-</script>
+    <script>
+        // Variables globales
+        let mqttClient = null;
+        let emptyWeight = 5.0;
+        let fullWeight = 15.0;
+        let lastWeightData = null;
+        let connectionAttempts = 0;
+        const maxConnectionAttempts = 5;
+        
+        // Configuración MQTT
+        const brokerUrl = 'wss://test.mosquitto.org:8081';
+        const topic = 'kontrol-gas/esp32/weight';
+        
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando Dashboard KontrolGas MQTT');
+            loadConfiguration();
+            connectMQTT();
+            
+            // Actualizar cada 3 segundos
+            setInterval(updateDisplay, 3000);
+        });
+        
+        function connectMQTT() {
+            connectionAttempts++;
+            console.log(`🔄 Conectando MQTT (intento ${connectionAttempts}/${maxConnectionAttempts})...`);
+            
+            updateConnectionStatus('🔄 Conectando al broker MQTT...', 'disconnected');
+            
+            try {
+                // Crear cliente MQTT
+                const clientId = 'KontrolGas-Dashboard-' + Math.random().toString(16).substr(2, 8);
+                mqttClient = mqtt.connect(brokerUrl, {
+                    clientId: clientId,
+                    keepalive: 30,
+                    reconnectPeriod: 5000,
+                    connectTimeout: 10000
+                });
+                
+                // Eventos MQTT
+                mqttClient.on('connect', function() {
+                    console.log('✅ MQTT conectado exitosamente');
+                    updateConnectionStatus('✅ Conectado al broker MQTT', 'connected');
+                    connectionAttempts = 0;
+                    
+                    // Suscribirse al topic
+                    mqttClient.subscribe(topic, function(err) {
+                        if (!err) {
+                            console.log(`📥 Suscrito al topic: ${topic}`);
+                        } else {
+                            console.error('❌ Error suscribiéndose:', err);
+                        }
+                    });
+                });
+                
+                mqttClient.on('message', function(receivedTopic, message) {
+                    if (receivedTopic === topic) {
+                        try {
+                            const data = JSON.parse(message.toString());
+                            console.log('📨 Datos recibidos:', data);
+                            lastWeightData = data;
+                            updateDisplay();
+                        } catch (error) {
+                            console.error('❌ Error parseando mensaje:', error);
+                        }
+                    }
+                });
+                
+                mqttClient.on('error', function(error) {
+                    console.error('❌ Error MQTT:', error);
+                    updateConnectionStatus('❌ Error de conexión MQTT', 'disconnected');
+                    
+                    if (connectionAttempts < maxConnectionAttempts) {
+                        setTimeout(connectMQTT, 5000);
+                    } else {
+                        updateConnectionStatus('💥 No se pudo conectar después de 5 intentos', 'disconnected');
+                    }
+                });
+                
+                mqttClient.on('close', function() {
+                    console.log('🔌 Conexión MQTT cerrada');
+                    updateConnectionStatus('🔌 Conexión MQTT cerrada', 'disconnected');
+                });
+                
+            } catch (error) {
+                console.error('💥 Error creando cliente MQTT:', error);
+                updateConnectionStatus('💥 Error creando cliente MQTT', 'disconnected');
+                
+                if (connectionAttempts < maxConnectionAttempts) {
+                    setTimeout(connectMQTT, 5000);
+                }
+            }
+        }
+        
+        function updateDisplay() {
+            if (!lastWeightData) {
+                return;
+            }
+            
+            const weight = lastWeightData.weight || 0;
+            const clientId = lastWeightData.client_id || '-';
+            const rssi = lastWeightData.rssi || 0;
+            const timestamp = lastWeightData.timestamp || 0;
+            
+            // Actualizar peso
+            document.getElementById('weightValue').textContent = weight.toFixed(3);
+            
+            // Calcular porcentaje
+            const netWeight = weight - emptyWeight;
+            const totalCapacity = fullWeight - emptyWeight;
+            const percentage = Math.max(0, Math.min(100, (netWeight / totalCapacity) * 100));
+            
+            // Actualizar porcentaje y gauge
+            document.getElementById('percentage').textContent = percentage.toFixed(1) + '%';
+            updateGauge(percentage);
+            
+            // Actualizar información
+            document.getElementById('clientId').textContent = clientId;
+            document.getElementById('rssi').textContent = rssi + ' dBm';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            console.log(`📊 Peso: ${weight.toFixed(3)} kg | Porcentaje: ${percentage.toFixed(1)}%`);
+        }
+        
+        function updateGauge(percentage) {
+            const gauge = document.getElementById('gaugeFill');
+            const angle = (percentage / 100) * 160; // 160 grados máximo
+            const radians = (angle - 80) * (Math.PI / 180); // -80 para centrar
+            
+            const x = 100 + 80 * Math.cos(radians);
+            const y = 80 + 80 * Math.sin(radians);
+            
+            const largeArcFlag = angle > 80 ? 1 : 0;
+            const path = `M 20 80 A 80 80 0 ${largeArcFlag} 1 ${x} ${y}`;
+            
+            gauge.setAttribute('d', path);
+            
+            // Cambiar color según porcentaje
+            if (percentage < 20) {
+                gauge.setAttribute('stroke', '#dc3545'); // Rojo
+            } else if (percentage < 50) {
+                gauge.setAttribute('stroke', '#ffc107'); // Amarillo
+            } else {
+                gauge.setAttribute('stroke', '#28a745'); // Verde
+            }
+        }
+        
+        function updateConnectionStatus(message, status) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.textContent = message;
+            statusElement.className = `connection-status ${status}`;
+        }
+        
+        function loadConfiguration() {
+            const savedEmpty = localStorage.getItem('emptyWeight');
+            const savedFull = localStorage.getItem('fullWeight');
+            
+            if (savedEmpty) {
+                emptyWeight = parseFloat(savedEmpty);
+                document.getElementById('emptyWeight').value = emptyWeight;
+            }
+            
+            if (savedFull) {
+                fullWeight = parseFloat(savedFull);
+                document.getElementById('fullWeight').value = fullWeight;
+            }
+            
+            console.log(`⚙️ Configuración cargada: Vacío=${emptyWeight}kg, Lleno=${fullWeight}kg`);
+        }
+        
+        function saveConfiguration() {
+            emptyWeight = parseFloat(document.getElementById('emptyWeight').value);
+            fullWeight = parseFloat(document.getElementById('fullWeight').value);
+            
+            localStorage.setItem('emptyWeight', emptyWeight);
+            localStorage.setItem('fullWeight', fullWeight);
+            
+            console.log(`💾 Configuración guardada: Vacío=${emptyWeight}kg, Lleno=${fullWeight}kg`);
+            alert('✅ Configuración guardada correctamente');
+            
+            // Actualizar display inmediatamente
+            updateDisplay();
+        }
+        
+        function resetConfiguration() {
+            emptyWeight = 5.0;
+            fullWeight = 15.0;
+            
+            document.getElementById('emptyWeight').value = emptyWeight;
+            document.getElementById('fullWeight').value = fullWeight;
+            
+            localStorage.removeItem('emptyWeight');
+            localStorage.removeItem('fullWeight');
+            
+            console.log('🔄 Configuración restablecida');
+            alert('🔄 Configuración restablecida a valores por defecto');
+            
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
