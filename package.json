@@ -1,8 +1,8 @@
 {
   "name": "kontrol-gas-dashboard",
-  "version": "1.0.1",
-  "description": "Dashboard KontrolGas - Runtime corregido",
+  "version": "1.0.2",
+  "description": "Dashboard KontrolGas - Node 18.x",
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   }
 }
