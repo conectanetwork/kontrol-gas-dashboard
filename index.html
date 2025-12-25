@@ -544,14 +544,14 @@
         }
 
         // ============================================
-        // ACTUALIZAR GRÁFICO DE CONSUMO
+        // ACTUALIZAR GRÁFICO DE CONSUMO - CORREGIDO
         // ============================================
         function updateConsumptionChart() {
             const now = Date.now();
             const last24Hours = now - (24 * 60 * 60 * 1000);
 
             // Crear array de 24 horas
-            const hourlyData = new Array(24).fill(null);
+            const hourlyData = [];
             const hourlyLabels = [];
 
             // Generar etiquetas de horas
@@ -561,62 +561,75 @@
             }
 
             // Agrupar datos por hora
+            const hourlyValues = new Array(24).fill(null);
+            
             historicalData.forEach(item => {
                 if (item.timestamp >= last24Hours) {
                     const hoursAgo = Math.floor((now - item.timestamp) / (60 * 60 * 1000));
                     const index = 23 - hoursAgo;
                     
                     if (index >= 0 && index < 24) {
-                        // Usar el último valor de cada hora
-                        hourlyData[index] = item.weight;
+                        hourlyValues[index] = item.weight;
                     }
                 }
             });
 
-            // Rellenar gaps con interpolación
-            for (let i = 0; i < hourlyData.length; i++) {
-                if (hourlyData[i] === null) {
-                    // Buscar valor anterior
+            // CORRECCIÓN: Interpolar solo si hay datos antes y después
+            for (let i = 0; i < hourlyValues.length; i++) {
+                if (hourlyValues[i] === null) {
                     let prevValue = null;
+                    let prevIndex = -1;
+                    
+                    // Buscar valor anterior válido
                     for (let j = i - 1; j >= 0; j--) {
-                        if (hourlyData[j] !== null) {
-                            prevValue = hourlyData[j];
+                        if (hourlyValues[j] !== null) {
+                            prevValue = hourlyValues[j];
+                            prevIndex = j;
                             break;
                         }
                     }
                     
-                    // Buscar valor siguiente
                     let nextValue = null;
-                    for (let j = i + 1; j < hourlyData.length; j++) {
-                        if (hourlyData[j] !== null) {
-                            nextValue = hourlyData[j];
+                    let nextIndex = -1;
+                    
+                    // Buscar valor siguiente válido
+                    for (let j = i + 1; j < hourlyValues.length; j++) {
+                        if (hourlyValues[j] !== null) {
+                            nextValue = hourlyValues[j];
+                            nextIndex = j;
                             break;
                         }
                     }
                     
-                    // Interpolar o usar valor disponible
+                    // CORRECCIÓN: Solo interpolar si hay valores antes Y después
                     if (prevValue !== null && nextValue !== null) {
-                        hourlyData[i] = (prevValue + nextValue) / 2;
-                    } else if (prevValue !== null) {
-                        hourlyData[i] = prevValue;
-                    } else if (nextValue !== null) {
-                        hourlyData[i] = nextValue;
+                        // Interpolación lineal
+                        const totalGap = nextIndex - prevIndex;
+                        const currentGap = i - prevIndex;
+                        const ratio = currentGap / totalGap;
+                        hourlyValues[i] = prevValue + (nextValue - prevValue) * ratio;
                     }
+                    // Si solo hay valor anterior o siguiente, dejar como null
                 }
+            }
+
+            // Convertir a array final (mantener nulls donde no hay datos)
+            for (let i = 0; i < 24; i++) {
+                hourlyData.push(hourlyValues[i]);
             }
 
             // Actualizar o crear gráfico
             if (consumptionChart) {
                 consumptionChart.data.labels = hourlyLabels;
                 consumptionChart.data.datasets[0].data = hourlyData;
-                consumptionChart.update('none'); // Sin animación para mejor rendimiento
+                consumptionChart.update('none');
             } else {
                 createConsumptionChart(hourlyLabels, hourlyData);
             }
         }
 
         // ============================================
-        // CREAR GRÁFICO DE CONSUMO
+        // CREAR GRÁFICO DE CONSUMO - CORREGIDO
         // ============================================
         function createConsumptionChart(labels, data) {
             const ctx = document.getElementById('consumptionChart').getContext('2d');
@@ -629,16 +642,16 @@
                         label: 'Peso (kg)',
                         data: data,
                         borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        backgroundColor: 'transparent', // CORRECCIÓN: Sin relleno para evitar columnas
                         borderWidth: 3,
                         tension: 0.4,
-                        fill: true,
+                        fill: false, // CORRECCIÓN: Desactivar relleno
                         pointRadius: 4,
                         pointHoverRadius: 6,
                         pointBackgroundColor: '#667eea',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
-                        spanGaps: true // Conectar puntos aunque haya nulls
+                        spanGaps: false // CORRECCIÓN: No conectar gaps automáticamente
                     }]
                 },
                 options: {
