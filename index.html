@@ -39,6 +39,15 @@
             margin-bottom: 15px;
         }
         
+        .logo svg {
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+            transition: transform 0.3s ease;
+        }
+        
+        .logo:hover svg {
+            transform: scale(1.05);
+        }
+        
         .title {
             font-size: 2.5rem;
             font-weight: 200;
@@ -450,7 +459,22 @@
     
     <div class="container">
         <div class="header">
-            <div class="logo">⚖️</div>
+            <div class="logo">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                    <!-- Pista base -->
+                    <circle cx="30" cy="30" r="25" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+                    <!-- Progreso -->
+                    <circle cx="30" cy="30" r="25" fill="none" stroke="#48bb78" stroke-width="4" 
+                            stroke-dasharray="78.5 78.5" stroke-dashoffset="39.25" transform="rotate(-90 30 30)"/>
+                    <!-- Centro -->
+                    <circle cx="30" cy="30" r="15" fill="#4299e1"/>
+                    <!-- Letra K -->
+                    <text x="30" y="37" text-anchor="middle" fill="white" font-size="16" font-weight="bold">K</text>
+                    <!-- Llama -->
+                    <path d="M30 8 C28 10, 26 14, 28 18 C29 20, 31 20, 32 18 C34 14, 32 10, 30 8 Z" 
+                          fill="#f56565"/>
+                </svg>
+            </div>
             <h1 class="title">KontrolGas</h1>
             <div class="subtitle">Dashboard Minimalista - Monitoreo Profesional</div>
         </div>
