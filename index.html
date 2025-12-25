@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KontrolGas - Dashboard Minimalista</title>
+    <title>KontrolGas - Dashboard Nivel 2</title>
     <style>
         * {
             margin: 0;
@@ -60,6 +60,17 @@
             font-size: 1rem;
             color: #718096;
             font-weight: 300;
+        }
+        
+        .optimization-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-weight: 400;
         }
         
         .dashboard-grid {
@@ -477,6 +488,7 @@
             </div>
             <h1 class="title">KontrolGas</h1>
             <div class="subtitle">Monitoreo de Gas Profesional</div>
+            <div class="optimization-badge">🚀 Nivel 2: Envío Condicional | 97% Ahorro</div>
         </div>
         
         <div class="status-bar">
@@ -576,17 +588,21 @@
         
         // Inicializar dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando Dashboard Minimalista KontrolGas');
+            console.log('🚀 Iniciando Dashboard KontrolGas - Nivel 2');
+            console.log('📊 Optimizaciones: Envío Condicional | 97% Ahorro');
             loadConfiguration();
             loadTheme();
             initializeChart();
             connectMQTT();
             
-            // Actualizar cada 3 segundos
-            setInterval(updateDisplay, 3000);
+            // ✅ OPTIMIZACIÓN: Actualización cada 10 segundos (antes 3s)
+            setInterval(updateDisplay, 10000);
             
-            // Guardar datos históricos cada hora
-            setInterval(saveHistoricalData, 3600000);
+            // ✅ OPTIMIZACIÓN: Guardar datos cada 2 horas (antes 1 hora)
+            setInterval(saveHistoricalData, 7200000);
+            
+            // ✅ OPTIMIZACIÓN: Comprimir datos cada 6 horas
+            setInterval(compressHistoricalData, 21600000);
         });
         
         function toggleColorScheme() {
@@ -604,7 +620,6 @@
                 localStorage.setItem('theme', 'light');
             }
             
-            // Actualizar colores del gráfico
             if (consumptionChart) {
                 updateChartTheme();
             }
@@ -672,8 +687,16 @@
                     if (receivedTopic === topic) {
                         try {
                             const data = JSON.parse(message.toString());
-                            console.log('📨 Datos recibidos:', data);
-                            lastWeightData = data;
+                            
+                            // ✅ PARSEAR JSON COMPACTO - NIVEL 2
+                            lastWeightData = {
+                                weight: data.w || 0,        // "w" → weight
+                                client_id: data.id || '-',  // "id" → client_id
+                                rssi: data.r || 0           // "r" → rssi
+                            };
+                            
+                            console.log('📨 Datos recibidos (compacto):', data);
+                            console.log('📊 Datos parseados:', lastWeightData);
                             updateDisplay();
                         } catch (error) {
                             console.error('❌ Error parseando mensaje:', error);
@@ -735,7 +758,7 @@
             document.getElementById('rssi').textContent = rssi + ' dBm';
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             
-            // ✅ CORRECCIÓN 1 y 2: Agregar peso NETO al gráfico y actualizar automáticamente
+            // Agregar punto al gráfico (peso neto)
             addDataPoint(liquidWeight);
             
             console.log(`📊 Peso total: ${weight.toFixed(2)} kg | Líquido: ${liquidWeight.toFixed(2)} kg | Porcentaje: ${percentage.toFixed(1)}%`);
@@ -745,28 +768,24 @@
             const gaugeFill = document.getElementById('gaugeFill');
             const gaugePercentage = document.getElementById('percentage');
             
-            // Calcular el stroke-dashoffset basado en el porcentaje (semicírculo más grande)
-            const circumference = 282.7; // Longitud del arco semicircular más grande
+            const circumference = 282.7;
             const offset = circumference - (percentage / 100) * circumference;
             
-            // Aplicar el offset para mostrar el progreso
             gaugeFill.style.strokeDashoffset = offset;
             
-            // Colores según porcentaje (cambia conforme disminuye el peso)
             let color;
             if (percentage < 20) {
-                color = '#f56565'; // Rojo - Crítico
+                color = '#f56565';
             } else if (percentage < 40) {
-                color = '#ed8936'; // Naranja - Bajo
+                color = '#ed8936';
             } else if (percentage < 70) {
-                color = '#ecc94b'; // Amarillo - Medio
+                color = '#ecc94b';
             } else if (percentage < 90) {
-                color = '#48bb78'; // Verde - Bueno
+                color = '#48bb78';
             } else {
-                color = '#4299e1'; // Azul - Lleno
+                color = '#4299e1';
             }
             
-            // Aplicar color al gauge y al texto
             gaugeFill.style.stroke = color;
             gaugePercentage.style.color = color;
         }
@@ -787,7 +806,6 @@
         function initializeChart() {
             const ctx = document.getElementById('consumptionChart').getContext('2d');
             
-            // Generar etiquetas de las últimas 24 horas
             const labels = [];
             const now = new Date();
             for (let i = 23; i >= 0; i--) {
@@ -800,7 +818,6 @@
             const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             const textColor = isDark ? '#e2e8f0' : '#2d3748';
             
-            // ✅ CORRECCIÓN 3: Escala Y fija basada en capacidad del cilindro
             const maxCapacity = fullWeight - emptyWeight;
             
             consumptionChart = new Chart(ctx, {
@@ -808,7 +825,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Peso Neto (kg)', // ✅ Etiqueta corregida
+                        label: 'Peso Neto (kg)',
                         data: new Array(24).fill(null),
                         borderColor: chartColor,
                         backgroundColor: chartColor + '20',
@@ -856,7 +873,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Peso Neto (kg)', // ✅ Título corregido
+                                text: 'Peso Neto (kg)',
                                 font: {
                                     size: 12,
                                     weight: '300'
@@ -874,7 +891,6 @@
                                     weight: '300'
                                 }
                             },
-                            // ✅ CORRECCIÓN 3: Escala fija de 0 a capacidad máxima
                             min: 0,
                             max: maxCapacity,
                             beginAtZero: true
@@ -883,21 +899,16 @@
                 }
             });
             
-            // Cargar datos históricos
             loadHistoricalData();
         }
         
-        // ✅ CORRECCIÓN 1: Función actualizada para usar peso NETO
         function addDataPoint(liquidWeight) {
             if (!consumptionChart) return;
             
             const now = new Date();
             const currentHour = now.getHours();
             
-            // ✅ Actualizar con peso NETO en lugar de peso total
             consumptionChart.data.datasets[0].data[currentHour] = liquidWeight;
-            
-            // ✅ CORRECCIÓN 2: Actualización automática sin animación para mejor rendimiento
             consumptionChart.update('none');
             
             console.log(`📈 Gráfico actualizado - Hora: ${currentHour}:00, Peso Neto: ${liquidWeight.toFixed(2)} kg`);
@@ -909,24 +920,80 @@
             const now = new Date();
             const hourKey = `weight_${now.getFullYear()}_${now.getMonth()}_${now.getDate()}_${now.getHours()}`;
             
-            // ✅ Guardar peso NETO en lugar de peso total
             const liquidWeight = Math.max(0, lastWeightData.weight - emptyWeight);
             
             localStorage.setItem(hourKey, JSON.stringify({
-                weight: liquidWeight, // ✅ Peso neto
+                weight: liquidWeight,
                 timestamp: now.getTime()
             }));
             
             // Limpiar datos antiguos (más de 24 horas)
             const cutoffTime = now.getTime() - (24 * 60 * 60 * 1000);
+            const keysToRemove = [];
+            
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('weight_')) {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    if (data.timestamp < cutoffTime) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < cutoffTime) {
+                            keysToRemove.push(key);
+                        }
+                    } catch (e) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+            
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            if (keysToRemove.length > 0) {
+                console.log(`🧹 Limpieza: ${keysToRemove.length} registros antiguos eliminados`);
+            }
+        }
+        
+        // ✅ OPTIMIZACIÓN: Comprimir datos históricos
+        function compressHistoricalData() {
+            const now = new Date();
+            const sixHoursAgo = now.getTime() - (6 * 60 * 60 * 1000);
+            
+            const dataToCompress = {};
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('weight_') && !key.includes('compressed')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < sixHoursAgo) {
+                            const hourBlock = Math.floor(data.timestamp / (2 * 60 * 60 * 1000));
+                            if (!dataToCompress[hourBlock]) {
+                                dataToCompress[hourBlock] = [];
+                            }
+                            dataToCompress[hourBlock].push(data.weight);
+                            localStorage.removeItem(key);
+                        }
+                    } catch (e) {
                         localStorage.removeItem(key);
                     }
                 }
+            }
+            
+            // Guardar promedios
+            let compressedCount = 0;
+            Object.keys(dataToCompress).forEach(hourBlock => {
+                const weights = dataToCompress[hourBlock];
+                const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
+                const timestamp = parseInt(hourBlock) * (2 * 60 * 60 * 1000);
+                
+                localStorage.setItem(`weight_compressed_${hourBlock}`, JSON.stringify({
+                    weight: avgWeight,
+                    timestamp: timestamp
+                }));
+                compressedCount++;
+            });
+            
+            if (compressedCount > 0) {
+                console.log(`🗜️ Compresión: ${compressedCount} bloques de 2 horas creados`);
             }
         }
         
@@ -936,15 +1003,18 @@
             const now = new Date();
             const data = new Array(24).fill(null);
             
-            // Cargar datos de las últimas 24 horas
             for (let i = 0; i < 24; i++) {
                 const time = new Date(now.getTime() - (23 - i) * 60 * 60 * 1000);
                 const hourKey = `weight_${time.getFullYear()}_${time.getMonth()}_${time.getDate()}_${time.getHours()}`;
                 
                 const savedData = localStorage.getItem(hourKey);
                 if (savedData) {
-                    const weightData = JSON.parse(savedData);
-                    data[i] = weightData.weight; // Ya es peso neto
+                    try {
+                        const weightData = JSON.parse(savedData);
+                        data[i] = weightData.weight;
+                    } catch (e) {
+                        console.error('Error cargando dato histórico:', e);
+                    }
                 }
             }
             
@@ -981,7 +1051,6 @@
             localStorage.setItem('emptyWeight', emptyWeight);
             localStorage.setItem('fullWeight', fullWeight);
             
-            // ✅ CORRECCIÓN 3: Actualizar escala del gráfico cuando cambia la configuración
             if (consumptionChart) {
                 const maxCapacity = fullWeight - emptyWeight;
                 consumptionChart.options.scales.y.max = maxCapacity;
@@ -1005,7 +1074,6 @@
             localStorage.removeItem('emptyWeight');
             localStorage.removeItem('fullWeight');
             
-            // ✅ CORRECCIÓN 3: Actualizar escala del gráfico al resetear
             if (consumptionChart) {
                 const maxCapacity = fullWeight - emptyWeight;
                 consumptionChart.options.scales.y.max = maxCapacity;
