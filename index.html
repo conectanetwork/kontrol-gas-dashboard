@@ -606,24 +606,28 @@
             
             // Actualizar colores del gráfico
             if (consumptionChart) {
-                const isDark = currentTheme === 'dark';
-                const chartColor = isDark ? '#667eea' : '#4299e1';
-                const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-                const textColor = isDark ? '#e2e8f0' : '#2d3748';
-                
-                consumptionChart.data.datasets[0].borderColor = chartColor;
-                consumptionChart.data.datasets[0].backgroundColor = chartColor + '20';
-                consumptionChart.data.datasets[0].pointBackgroundColor = chartColor;
-                
-                consumptionChart.options.scales.x.grid.color = gridColor;
-                consumptionChart.options.scales.y.grid.color = gridColor;
-                consumptionChart.options.scales.x.ticks.color = textColor;
-                consumptionChart.options.scales.y.ticks.color = textColor;
-                consumptionChart.options.scales.x.title.color = textColor;
-                consumptionChart.options.scales.y.title.color = textColor;
-                
-                consumptionChart.update();
+                updateChartTheme();
             }
+        }
+        
+        function updateChartTheme() {
+            const isDark = currentTheme === 'dark';
+            const chartColor = isDark ? '#667eea' : '#4299e1';
+            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            const textColor = isDark ? '#e2e8f0' : '#2d3748';
+            
+            consumptionChart.data.datasets[0].borderColor = chartColor;
+            consumptionChart.data.datasets[0].backgroundColor = chartColor + '20';
+            consumptionChart.data.datasets[0].pointBackgroundColor = chartColor;
+            
+            consumptionChart.options.scales.x.grid.color = gridColor;
+            consumptionChart.options.scales.y.grid.color = gridColor;
+            consumptionChart.options.scales.x.ticks.color = textColor;
+            consumptionChart.options.scales.y.ticks.color = textColor;
+            consumptionChart.options.scales.x.title.color = textColor;
+            consumptionChart.options.scales.y.title.color = textColor;
+            
+            consumptionChart.update();
         }
         
         function loadTheme() {
@@ -731,8 +735,8 @@
             document.getElementById('rssi').textContent = rssi + ' dBm';
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             
-            // Agregar punto al gráfico de consumo
-            addDataPoint(weight);
+            // ✅ CORRECCIÓN 1 y 2: Agregar peso NETO al gráfico y actualizar automáticamente
+            addDataPoint(liquidWeight);
             
             console.log(`📊 Peso total: ${weight.toFixed(2)} kg | Líquido: ${liquidWeight.toFixed(2)} kg | Porcentaje: ${percentage.toFixed(1)}%`);
         }
@@ -796,12 +800,15 @@
             const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             const textColor = isDark ? '#e2e8f0' : '#2d3748';
             
+            // ✅ CORRECCIÓN 3: Escala Y fija basada en capacidad del cilindro
+            const maxCapacity = fullWeight - emptyWeight;
+            
             consumptionChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Peso (kg)',
+                        label: 'Peso Neto (kg)', // ✅ Etiqueta corregida
                         data: new Array(24).fill(null),
                         borderColor: chartColor,
                         backgroundColor: chartColor + '20',
@@ -849,7 +856,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Peso (kg)',
+                                text: 'Peso Neto (kg)', // ✅ Título corregido
                                 font: {
                                     size: 12,
                                     weight: '300'
@@ -867,6 +874,9 @@
                                     weight: '300'
                                 }
                             },
+                            // ✅ CORRECCIÓN 3: Escala fija de 0 a capacidad máxima
+                            min: 0,
+                            max: maxCapacity,
                             beginAtZero: true
                         }
                     }
@@ -877,15 +887,20 @@
             loadHistoricalData();
         }
         
-        function addDataPoint(weight) {
+        // ✅ CORRECCIÓN 1: Función actualizada para usar peso NETO
+        function addDataPoint(liquidWeight) {
             if (!consumptionChart) return;
             
             const now = new Date();
             const currentHour = now.getHours();
             
-            // Actualizar el punto correspondiente a la hora actual
-            consumptionChart.data.datasets[0].data[currentHour] = weight;
+            // ✅ Actualizar con peso NETO en lugar de peso total
+            consumptionChart.data.datasets[0].data[currentHour] = liquidWeight;
+            
+            // ✅ CORRECCIÓN 2: Actualización automática sin animación para mejor rendimiento
             consumptionChart.update('none');
+            
+            console.log(`📈 Gráfico actualizado - Hora: ${currentHour}:00, Peso Neto: ${liquidWeight.toFixed(2)} kg`);
         }
         
         function saveHistoricalData() {
@@ -894,8 +909,11 @@
             const now = new Date();
             const hourKey = `weight_${now.getFullYear()}_${now.getMonth()}_${now.getDate()}_${now.getHours()}`;
             
+            // ✅ Guardar peso NETO en lugar de peso total
+            const liquidWeight = Math.max(0, lastWeightData.weight - emptyWeight);
+            
             localStorage.setItem(hourKey, JSON.stringify({
-                weight: lastWeightData.weight,
+                weight: liquidWeight, // ✅ Peso neto
                 timestamp: now.getTime()
             }));
             
@@ -926,7 +944,7 @@
                 const savedData = localStorage.getItem(hourKey);
                 if (savedData) {
                     const weightData = JSON.parse(savedData);
-                    data[i] = weightData.weight;
+                    data[i] = weightData.weight; // Ya es peso neto
                 }
             }
             
@@ -963,6 +981,14 @@
             localStorage.setItem('emptyWeight', emptyWeight);
             localStorage.setItem('fullWeight', fullWeight);
             
+            // ✅ CORRECCIÓN 3: Actualizar escala del gráfico cuando cambia la configuración
+            if (consumptionChart) {
+                const maxCapacity = fullWeight - emptyWeight;
+                consumptionChart.options.scales.y.max = maxCapacity;
+                consumptionChart.update();
+                console.log(`📊 Escala del gráfico actualizada: 0 - ${maxCapacity} kg`);
+            }
+            
             console.log(`💾 Configuración guardada: Vacío=${emptyWeight}kg, Lleno=${fullWeight}kg`);
             alert('✅ Configuración guardada correctamente');
             
@@ -978,6 +1004,14 @@
             
             localStorage.removeItem('emptyWeight');
             localStorage.removeItem('fullWeight');
+            
+            // ✅ CORRECCIÓN 3: Actualizar escala del gráfico al resetear
+            if (consumptionChart) {
+                const maxCapacity = fullWeight - emptyWeight;
+                consumptionChart.options.scales.y.max = maxCapacity;
+                consumptionChart.update();
+                console.log(`📊 Escala del gráfico restablecida: 0 - ${maxCapacity} kg`);
+            }
             
             console.log('🔄 Configuración restablecida');
             alert('🔄 Configuración restablecida a valores por defecto');
